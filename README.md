@@ -10,7 +10,7 @@
 
 This project uses Python 3.11.
 
-Create the Conda environment:
+Create and activate the Conda environment:
 
 ```bash
 conda env create -f environment.yml
