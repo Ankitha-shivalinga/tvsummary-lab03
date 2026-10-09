@@ -1,79 +1,97 @@
-
-# TVMaze Show Records
+# TV Show Summary
 
 ## Data source
 
-This project uses the TVMaze API to download TV show records.
-
-Source: https://api.tvmaze.com/shows?page=0
+- **API:** TVMaze
+- **URL:** https://api.tvmaze.com/shows?page=0
+- **Records downloaded:** 240 in the current run
 
 ## Setup
 
-1. Clone the repository:
+This project uses Python 3.11.
 
-   ```bash
-   git clone https://github.com/Ankitha-shivalinga/week02-records.git
-   ```
+Create the Conda environment:
 
-2. Create and activate a virtual environment.
+```bash
+conda env create -f environment.yml
+conda activate tvsummary
+```
 
-3. Install the required packages:
+Install the package in editable mode:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+python -m pip install -r requirements.txt
+python -m pip install -e .
+```
 
 ## Run
 
-Run the program using:
+Run the program from the project root:
 
 ```bash
-python records.py
+python main.py
 ```
 
-The program downloads TV show records, calculates the aggregations and creates a `summary.json` file.
+The program downloads TV show records, calculates summaries by genre and premiere decade, and saves the results to `data/processed/summary.json`.
 
-## Example output
+## Test
 
-The program downloaded 240 records in my test run.
+Run the unit tests:
 
-The summary includes:
-
-* Total number of records
-* Number of shows in each genre
-* Number of shows by premiere decade
-
-Example:
-
-```json
-{
-  "source_url": "https://api.tvmaze.com/shows?page=0",
-  "total_records": 240,
-  "shows_per_genre": {
-    "Drama": 154,
-    "Comedy": 66
-  },
-  "shows_per_decade": {
-    "2010s": 179,
-    "2000s": 51
-  }
-}
+```bash
+python -m unittest discover -s tests
 ```
 
-## Data quirks
+The tests use handmade records and do not require a network connection.
 
-* Some records may have missing genres.
-* Some records may have missing or invalid premiere dates.
-* Invalid records are skipped during aggregation.
+## Layout
+
+```text
+tvsummary-lab03/
+├── main.py
+├── pyproject.toml
+├── environment.yml
+├── requirements.txt
+├── README.md
+├── data/
+│   ├── raw/
+│   └── processed/
+│       └── summary.json
+├── src/
+│   └── tvsummary/
+│       ├── __init__.py
+│       ├── config.py
+│       ├── models.py
+│       ├── sources.py
+│       ├── aggregations.py
+│       └── report.py
+└── tests/
+    └── test_models.py
+```
+
+## What moved where
+
+| Original responsibility | New location |
+|---|---|
+| Download TVMaze records | `src/tvsummary/sources.py` |
+| Clean and represent show records | `src/tvsummary/models.py` |
+| Count shows by genre and decade | `src/tvsummary/aggregations.py` |
+| Configure the URL, timeout, and output path | `src/tvsummary/config.py` |
+| Write the summary JSON | `src/tvsummary/report.py` |
+| Coordinate the program | `main.py` |
+| Test record handling | `tests/test_models.py` |
 
 ## Design choices
 
-* Lists store the downloaded records.
-* Dictionaries store the aggregation counts.
-* Sets remove duplicate genres within a record.
-* A set comprehension filters valid genres.
+- A `ShowRecord` class cleans missing or malformed show data when each record is initialized.
+- `Aggregation` is the base class for `GenreAggregation` and `DecadeAggregation`. Both subclasses implement their own aggregation behavior.
+- Polymorphism allows the main program to process the aggregation objects through their shared interface.
+- Dictionaries store the summary counts, and JSON provides a readable output format.
+- Configuration values are kept separate from the program logic.
+- The package uses a `src` layout and can be installed in editable mode.
 
 ## Known limitations
 
-* The program uses a single TVMaze API page.
-* The summary reflects the data available when the program is run.
+- The summary may change when the TVMaze API data changes.
+- Downloading records requires a network connection.
+- The tests use handmade records and test record handling without calling the live API.
